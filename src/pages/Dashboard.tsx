@@ -125,9 +125,8 @@ function OverviewTab({ stats, navigate }: { stats: KpiStat[]; navigate: (path: s
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                <div className="lg:col-span-2 rounded-2xl bg-slate-900 p-8 shadow-2xl shadow-blue-900/20">
-                    <h3 className="mb-6 text-xs font-black uppercase tracking-[0.2em] text-blue-400">Command Center</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="lg:col-span-2 rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-200/60">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <button
                             className="flex items-center justify-between rounded-xl bg-blue-600 px-6 py-5 font-bold text-white transition-all hover:bg-blue-500 active:scale-95 shadow-lg shadow-blue-500/30"
                             onClick={() => navigate("/cards/new")}

@@ -7,7 +7,7 @@ import {
     Settings,
     LogOut,
     User,
-    Shield
+    Landmark
 } from "lucide-react";
 
 const navItems = [
@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
                 <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-7">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-200">
-                        <Shield className="h-6 w-6 text-white" />
+                        <Landmark className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xl font-extrabold tracking-tight text-slate-900">BankCMS</span>
