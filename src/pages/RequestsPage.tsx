@@ -83,19 +83,15 @@ export default function RequestsPage() {
     return (
         <div className="page">
             <div className="page-header flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
-                    <ClipboardCheck className="h-6 w-6" />
-                </div>
                 <div>
-                    <h2 className="page-title text-2xl font-black text-slate-900 tracking-tight leading-none">Operational Queue</h2>
                     <p className="page-subtitle text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">
                         Authorization Engine — {pendingCount} PENDING ACTION{pendingCount !== 1 ? "S" : ""}
                     </p>
                 </div>
             </div>
 
-            <div className="mb-8 flex overflow-x-auto border-b border-slate-200">
-                <div className="flex min-w-full gap-2 sm:min-w-0">
+            <div>
+                <div className="mb-8 flex overflow-x-auto overflow-y-hidden border-b border-slate-200">
                     {TABS.map(({ key, label, icon: Icon }) => {
                         const count = key === "ALL" ? requests.length : requests.filter((r) => r.statusCode === key).length;
                         const isActive = activeTab === key;

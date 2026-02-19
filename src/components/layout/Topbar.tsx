@@ -17,7 +17,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
     const title =
         pageTitles[pathname] ??
-        (pathname.startsWith("/cards/") ? "Edit Card Instance" : "BankCMS");
+        (pathname.startsWith("/cards/") ? "Edit Card Instance" : "Status Management");
 
     return (
         <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-md md:px-10">

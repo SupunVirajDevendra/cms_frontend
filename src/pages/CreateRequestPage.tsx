@@ -110,12 +110,8 @@ export default function CreateRequestPage() {
 
     return (
         <div className="page">
-            <div className="page-header flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 shadow-inner">
-                    <ShieldAlert className="h-6 w-6" />
-                </div>
+            <div className="page-header flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h2 className="page-title text-2xl font-black text-slate-900 tracking-tight leading-none">Status Management</h2>
                     <p className="page-subtitle text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Transition Workflow Queue</p>
                 </div>
             </div>

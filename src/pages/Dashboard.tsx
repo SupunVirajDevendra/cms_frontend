@@ -71,7 +71,7 @@ export default function Dashboard() {
     return (
         <div className="page">
 
-            <div className="mb-8 flex overflow-x-auto border-b border-slate-200">
+            <div className="mb-8 flex overflow-x-auto overflow-y-hidden border-b border-slate-200">
                 {[
                     { id: "overview", label: "Overview", icon: LayoutDashboard },
                     { id: "search", label: "Request History", icon: FileText },

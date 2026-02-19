@@ -4,7 +4,7 @@ import type { Card } from "../types/card";
 import { getCards, getCardById } from "../services/cardService";
 import CardTable from "../components/card/CardTable";
 import Pagination from "../components/common/Pagination";
-import { Search, Plus, CreditCard } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 
 import toast from "react-hot-toast";
 
