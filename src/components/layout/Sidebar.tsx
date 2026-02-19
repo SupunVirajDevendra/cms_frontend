@@ -9,6 +9,7 @@ import {
     User,
     Landmark
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const navItems = [
     { to: "/", label: "Dashboard", Icon: LayoutDashboard },
@@ -78,7 +79,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <div className="mt-8 mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         System
                     </div>
-                    <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900">
+                    <button
+                        onClick={() => toast("Coming soon!")}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
+                    >
                         <Settings className="h-5 w-5 text-slate-400" />
                         <span>Settings</span>
                     </button>

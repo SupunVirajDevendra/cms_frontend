@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
-import { Menu, Bell, Search, Calendar } from "lucide-react";
+import { Menu, Bell, Calendar } from "lucide-react";
+import toast from "react-hot-toast";
 
 const pageTitles: Record<string, string> = {
     "/": "System Dashboard",
@@ -42,17 +43,20 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             </div>
 
             <div className="flex items-center gap-4 md:gap-8">
-                <div className="hidden relative md:block">
+                {/* <div className="hidden relative md:block">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
                         placeholder="Quick Search..."
                         className="h-10 w-56 rounded-xl border-none bg-slate-50 pl-10 pr-4 text-xs font-semibold text-slate-900 ring-0 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/10 placeholder:text-slate-400 shadow-inner"
                     />
-                </div>
+                </div> */}
 
                 <div className="flex items-center gap-2">
-                    <button className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all hover:scale-105 active:scale-95">
+                    <button
+                        onClick={() => toast("Coming soon!")}
+                        className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all hover:scale-105 active:scale-95"
+                    >
                         <Bell className="h-5 w-5 text-slate-500" />
                         <span className="absolute right-3.5 top-3.5 flex h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" />
                     </button>
