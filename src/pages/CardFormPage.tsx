@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CardFormData } from "../types/card";
 import { createCard, getCardById, updateCard, submitCardRequest } from "../services/cardService";
+import { getPendingRequestForCard } from "../services/requestService";
 import toast from "react-hot-toast";
 import { CreditCard, Calendar, Wallet, Banknote, Save, X, ArrowLeft, ShieldCheck, Info, Activity, PowerOff, CheckCircle } from "lucide-react";
 
@@ -55,8 +56,18 @@ export default function CardFormPage() {
 
     useEffect(() => {
         if (isEdit && id) {
+            // Check local storage for immediate feedback
+            if (localStorage.getItem(`card_pending_${id}`)) {
+                setIsActionSubmitted(true);
+            }
+
             setIsFetching(true);
-            getCardById(id).then((card) => {
+
+            // Fetch card data and pending request status in parallel
+            Promise.all([
+                getCardById(id),
+                getPendingRequestForCard(id)
+            ]).then(([card, pendingRequest]) => {
                 if (card) {
                     // Convert YYYY-MM-DD to YYYY-MM for HTML5 month input
                     const monthValue = card.expiryDate.split("-").slice(0, 2).join("-");
@@ -67,9 +78,26 @@ export default function CardFormPage() {
                         cashLimit: card.cashLimit,
                     });
                 }
-                setIsFetching(false);
+
+                // If backend confirms pending request, enforce it.
+                if (pendingRequest) {
+                    setIsActionSubmitted(true);
+                    localStorage.setItem(`card_pending_${id}`, 'true');
+                } else {
+                    // Optional: if backend says NO pending request, should we clear localStorage?
+                    // To be safe against stale local state:
+                    // Only clear if we are sure. For now, let's trust the backend most.
+                    // If backend returns explicitly 'undefined' (meaning no pending request found), 
+                    // AND we have local storage set, it might be a completed request.
+                    // Let's clear it to allow new actions.
+                    if (localStorage.getItem(`card_pending_${id}`)) {
+                        localStorage.removeItem(`card_pending_${id}`);
+                        setIsActionSubmitted(false);
+                    }
+                }
             }).catch(() => {
                 toast.error("Failed to load card details.");
+            }).finally(() => {
                 setIsFetching(false);
             });
         }
@@ -159,6 +187,7 @@ export default function CardFormPage() {
         try {
             await submitCardRequest(id!, action);
             setIsActionSubmitted(true);
+            localStorage.setItem(`card_pending_${id}`, "true");
             const msg = action === "ACTI" ? "Activation Request Lodged" : "Decommission Request Lodged";
             toast.success(msg, { icon: action === "ACTI" ? "⚡" : "🛑" });
             setTimeout(() => navigate("/cards"), 1500);

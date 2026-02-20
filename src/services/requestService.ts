@@ -40,3 +40,14 @@ export async function getPendingCount(): Promise<number> {
     }
 }
 
+export async function getPendingRequestForCard(maskId: string): Promise<Request | undefined> {
+    try {
+        const response = await getRequests(0, 1000);
+        return response.content.find((r: any) =>
+            (r.maskId === maskId || r.cardIdentifier === maskId) &&
+            r.statusCode?.toUpperCase() === "PENDING"
+        );
+    } catch {
+        return undefined;
+    }
+}

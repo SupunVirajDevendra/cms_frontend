@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Card } from "../types/card";
 import { getCards, type PaginatedResponse } from "../services/cardService";
-import { createRequest } from "../services/requestService";
+import { createRequest, getRequests } from "../services/requestService";
+import type { Request } from "../types/request";
 import { formatCurrency } from "../utils/format";
 import StatusBadge from "../components/common/StatusBadge";
 import ConfirmModal from "../components/common/ConfirmModal";
@@ -18,6 +19,7 @@ export default function CreateRequestPage() {
     const [totalElements, setTotalElements] = useState(0);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set());
+    const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set());
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -27,9 +29,25 @@ export default function CreateRequestPage() {
 
     useEffect(() => {
         setIsLoading(true);
-        getCards(currentPage - 1, PAGE_SIZE).then((data: PaginatedResponse<Card>) => {
-            setCards(data.content);
-            setTotalElements(data.totalElements);
+        Promise.all([
+            getCards(currentPage - 1, PAGE_SIZE),
+            getRequests(0, 1000)
+        ]).then(([cardsData, requestsData]) => {
+            setCards(cardsData.content);
+            setTotalElements(cardsData.totalElements);
+
+            const pendingSet = new Set<string>();
+            requestsData.content.forEach((req: any) => {
+                if (req.statusCode?.toUpperCase() === 'PENDING') {
+                    if (req.maskId) pendingSet.add(req.maskId);
+                    if (req.cardIdentifier) pendingSet.add(req.cardIdentifier);
+                }
+            });
+            setPendingRequests(pendingSet);
+
+            setIsLoading(false);
+        }).catch((err) => {
+            console.error("Failed to load data:", err);
             setIsLoading(false);
         });
     }, [currentPage]);
@@ -73,16 +91,19 @@ export default function CreateRequestPage() {
     };
 
     const getActionButton = (card: Card) => {
+        const isPending = submittedIds.has(card.maskId) || pendingRequests.has(card.maskId);
+        const isProcessing = processingId === card.maskId;
+
         if (card.statusCode === "IACT") {
             return (
                 <button
                     className="btn btn-sm btn-success flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-30 disabled:grayscale transition-all"
                     onClick={() => setConfirmModal({ isOpen: true, action: "activate", card })}
-                    disabled={processingId === card.maskId || submittedIds.has(card.maskId)}
+                    disabled={isProcessing || isPending}
                 >
                     <Zap className="h-3.5 w-3.5" />
                     <span>
-                        {processingId === card.maskId ? "..." : submittedIds.has(card.maskId) ? "LODGED" : "Activate"}
+                        {isProcessing ? "..." : isPending ? "LODGED" : "Activate"}
                     </span>
                 </button>
             );
@@ -94,12 +115,12 @@ export default function CreateRequestPage() {
                 <button
                     className="btn btn-sm btn-danger flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-30 disabled:grayscale transition-all"
                     onClick={() => setConfirmModal({ isOpen: true, action: "deactivate", card })}
-                    disabled={processingId === card.maskId || hasBalance || submittedIds.has(card.maskId)}
-                    title={hasBalance ? "Cannot deactivate: Outstanding balance exists" : submittedIds.has(card.maskId) ? "Request already submitted" : undefined}
+                    disabled={isProcessing || hasBalance || isPending}
+                    title={hasBalance ? "Cannot deactivate: Outstanding balance exists" : isPending ? "Request already submitted" : undefined}
                 >
                     <Ban className="h-3.5 w-3.5" />
                     <span>
-                        {processingId === card.maskId ? "..." : submittedIds.has(card.maskId) ? "LODGED" : "Deactivate"}
+                        {isProcessing ? "..." : isPending ? "LODGED" : "Deactivate"}
                     </span>
                 </button>
             );
