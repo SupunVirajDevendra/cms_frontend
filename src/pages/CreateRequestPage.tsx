@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Card } from "../types/card";
-import { getCards, getCardById, type PaginatedResponse } from "../services/cardService";
+import { getCards, getCardById } from "../services/cardService";
 import { createRequest, getRequests } from "../services/requestService";
-import type { Request } from "../types/request";
 import { formatCurrency } from "../utils/format";
 import StatusBadge from "../components/common/StatusBadge";
 import ConfirmModal from "../components/common/ConfirmModal";
@@ -75,10 +74,6 @@ export default function CreateRequestPage() {
 
     const totalPages = Math.ceil(totalElements / PAGE_SIZE);
 
-    const handleSearch = (val: string) => {
-        setSearch(val);
-        setCurrentPage(1);
-    };
 
     const hasOutstandingBalance = (card: Card) => {
         return card.availableCreditLimit < card.creditLimit;

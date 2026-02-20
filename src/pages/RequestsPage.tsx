@@ -7,7 +7,7 @@ import {
 import RequestTable from "../components/request/RequestTable";
 import ConfirmModal from "../components/common/ConfirmModal";
 import toast from "react-hot-toast";
-import { ClipboardCheck, List, Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { List, Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
 
 type TabKey = "ALL" | RequestStatus;
 
