@@ -52,6 +52,9 @@ export default function CardFormPage() {
 
     const validate = (): boolean => {
         const errs: FormErrors = {};
+        const currentDate = new Date();
+        const currentMonth = currentDate.getFullYear() * 12 + currentDate.getMonth();
+
         if (!isEdit) {
             if (!form.cardNumber.trim()) {
                 errs.cardNumber = "Card number is required.";
@@ -61,6 +64,13 @@ export default function CardFormPage() {
         }
         if (!form.expiryDate) {
             errs.expiryDate = "Expiry date is required.";
+        } else {
+            const [year, month] = form.expiryDate.split('-').map(Number);
+            const selectedMonth = year * 12 + (month - 1); // zero-indexed month
+
+            if (selectedMonth < currentMonth) {
+                errs.expiryDate = "Expiry date cannot be in the past.";
+            }
         }
         if (!form.creditLimit || form.creditLimit <= 0) {
             errs.creditLimit = "Credit limit must be greater than 0.";
@@ -71,6 +81,7 @@ export default function CardFormPage() {
         if (form.cashLimit > form.creditLimit) {
             errs.cashLimit = "Cash limit cannot exceed credit limit.";
         }
+
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -210,11 +221,14 @@ export default function CardFormPage() {
                                                     id="cardNumber"
                                                     className={`form-input h-16 pl-6 text-xl font-mono tracking-[0.25em] shadow-sm transition-all duration-300 border-2 ${errors.cardNumber ? "border-red-500 bg-red-50/20 ring-red-500/5" : "border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-500/5"}`}
                                                     type="text"
-                                                    placeholder="0000 0000 0000 0000"
+                                                    placeholder="0000000000000000"
                                                     value={form.cardNumber}
-                                                    onChange={(e) => handleChange("cardNumber", e.target.value)}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                                        handleChange("cardNumber", val);
+                                                    }}
                                                     disabled={isEdit}
-                                                    maxLength={19}
+                                                    maxLength={16}
                                                 />
                                                 {isEdit && (
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -234,6 +248,7 @@ export default function CardFormPage() {
                                                 id="expiryDate"
                                                 className={`form-input h-14 px-6 font-black shadow-sm transition-all duration-300 border-2 ${errors.expiryDate ? "border-red-500 bg-red-50/20" : "border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-500/5"}`}
                                                 type="month"
+                                                min={new Date().toISOString().slice(0, 7)}
                                                 value={form.expiryDate}
                                                 onChange={(e) => handleChange("expiryDate", e.target.value)}
                                             />
