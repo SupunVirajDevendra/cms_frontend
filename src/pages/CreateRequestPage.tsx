@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Card } from "../types/card";
-import { getCards, type PaginatedResponse } from "../services/cardService";
+import { getCards, getCardById, type PaginatedResponse } from "../services/cardService";
 import { createRequest, getRequests } from "../services/requestService";
 import type { Request } from "../types/request";
 import { formatCurrency } from "../utils/format";
@@ -28,29 +28,50 @@ export default function CreateRequestPage() {
     }>({ isOpen: false, action: null, card: null });
 
     useEffect(() => {
-        setIsLoading(true);
-        Promise.all([
-            getCards(currentPage - 1, PAGE_SIZE),
-            getRequests(0, 1000)
-        ]).then(([cardsData, requestsData]) => {
-            setCards(cardsData.content);
-            setTotalElements(cardsData.totalElements);
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const requestsPromise = getRequests(0, 1000);
+                let cardsPromise;
 
-            const pendingSet = new Set<string>();
-            requestsData.content.forEach((req: any) => {
-                if (req.statusCode?.toUpperCase() === 'PENDING') {
-                    if (req.maskId) pendingSet.add(req.maskId);
-                    if (req.cardIdentifier) pendingSet.add(req.cardIdentifier);
+                if (search.trim()) {
+                    cardsPromise = getCardById(search.trim())
+                        .then((card) => ({
+                            content: [card],
+                            totalElements: 1,
+                        }))
+                        .catch(() => ({
+                            content: [],
+                            totalElements: 0,
+                        }));
+                } else {
+                    cardsPromise = getCards(currentPage - 1, PAGE_SIZE);
                 }
-            });
-            setPendingRequests(pendingSet);
 
-            setIsLoading(false);
-        }).catch((err) => {
-            console.error("Failed to load data:", err);
-            setIsLoading(false);
-        });
-    }, [currentPage]);
+                const [cardsData, requestsData] = await Promise.all([cardsPromise, requestsPromise]);
+
+                setCards(cardsData.content);
+                setTotalElements(cardsData.totalElements);
+
+                const pendingSet = new Set<string>();
+                requestsData.content.forEach((req: any) => {
+                    if (req.statusCode?.toUpperCase() === "PENDING") {
+                        if (req.maskId) pendingSet.add(req.maskId);
+                        if (req.cardIdentifier) pendingSet.add(req.cardIdentifier);
+                    }
+                });
+                setPendingRequests(pendingSet);
+            } catch (err) {
+                console.error("Failed to load data:", err);
+                toast.error("Failed to load data");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const timer = setTimeout(fetchData, search ? 500 : 0);
+        return () => clearTimeout(timer);
+    }, [currentPage, search]);
 
     const totalPages = Math.ceil(totalElements / PAGE_SIZE);
 
@@ -134,6 +155,22 @@ export default function CreateRequestPage() {
             <div className="page-header flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <p className="page-subtitle text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Transition Workflow Queue</p>
+                </div>
+            </div>
+
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="relative flex-1 max-w-xl">
+                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Scan Registry: Match by card number or Mask ID..."
+                        className="form-input h-12 pl-12 bg-white border-slate-200 shadow-sm focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-semibold text-slate-900"
+                        value={search}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    />
                 </div>
             </div>
 
