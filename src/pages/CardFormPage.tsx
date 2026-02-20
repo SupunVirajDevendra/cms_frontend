@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CardFormData } from "../types/card";
 import { createCard, getCardById, updateCard, submitCardRequest } from "../services/cardService";
@@ -27,6 +27,31 @@ export default function CardFormPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(isEdit);
     const [isActionSubmitted, setIsActionSubmitted] = useState(false);
+
+    const isFormValid = useMemo(() => {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getFullYear() * 12 + currentDate.getMonth();
+
+        // Card Number (only for new cards)
+        if (!isEdit) {
+            if (!form.cardNumber.trim() || form.cardNumber.replace(/\D/g, "").length < 16) {
+                return false;
+            }
+        }
+
+        // Expiry Date
+        if (!form.expiryDate) return false;
+        const [year, month] = form.expiryDate.split('-').map(Number);
+        const selectedMonth = year * 12 + (month - 1);
+        if (selectedMonth < currentMonth) return false;
+
+        // Limits
+        if (!form.creditLimit || form.creditLimit <= 0) return false;
+        if (!form.cashLimit || form.cashLimit <= 0) return false;
+        if (form.cashLimit > form.creditLimit * 0.5) return false;
+
+        return true;
+    }, [form, isEdit]);
 
     useEffect(() => {
         if (isEdit && id) {
@@ -78,16 +103,19 @@ export default function CardFormPage() {
         if (!form.cashLimit || form.cashLimit <= 0) {
             errs.cashLimit = "Cash limit must be greater than 0.";
         }
-        if (form.cashLimit > form.creditLimit) {
-            errs.cashLimit = "Cash limit cannot exceed credit limit.";
+        if (form.cashLimit > form.creditLimit * 0.5) {
+            errs.cashLimit = "Cash limit cannot exceed 50% of credit limit.";
         }
 
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
 
+    const isCashLimitInvalid = form.creditLimit > 0 && form.cashLimit > form.creditLimit * 0.5;
+
     const handleChange = (field: keyof CardFormData, value: string | number) => {
         setForm((prev) => ({ ...prev, [field]: value }));
+        // Clear specific error when user types, but derived errors (like checks) will still show if condition persists
         setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
@@ -275,22 +303,30 @@ export default function CardFormPage() {
                                         </div>
 
                                         <div className="form-group md:col-span-2">
-                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4" htmlFor="cashLimit">
-                                                <Banknote className="h-4 w-4 text-slate-300" />
-                                                Cash Liquidity Threshold
-                                            </label>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400" htmlFor="cashLimit">
+                                                    <Banknote className="h-4 w-4 text-slate-300" />
+                                                    Cash Liquidity Threshold
+                                                </label>
+                                                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">Max: 50% of Credit Allocation</span>
+                                            </div>
                                             <div className="relative">
                                                 <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-300 text-xs">LKR</span>
                                                 <input
                                                     id="cashLimit"
-                                                    className={`form-input h-14 pl-16 font-black shadow-sm transition-all duration-300 border-2 ${errors.cashLimit ? "border-red-500 bg-red-50/20" : "border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-500/5"}`}
+                                                    className={`form-input h-14 pl-16 font-black shadow-sm transition-all duration-300 border-2 ${(errors.cashLimit || isCashLimitInvalid) ? "border-red-500 bg-red-50/20" : "border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-500/5"}`}
                                                     type="number"
                                                     placeholder="0"
                                                     value={form.cashLimit || ""}
                                                     onChange={(e) => handleChange("cashLimit", Number(e.target.value))}
                                                 />
                                             </div>
-                                            {errors.cashLimit && <p className="mt-3 text-[11px] font-bold text-red-500 flex items-center gap-1"><X className="h-3 w-3" /> {errors.cashLimit}</p>}
+                                            {(errors.cashLimit || isCashLimitInvalid) && (
+                                                <p className="mt-3 text-[11px] font-bold text-red-500 flex items-center gap-1">
+                                                    <X className="h-3 w-3" />
+                                                    {errors.cashLimit || "Cash limit cannot exceed 50% of credit allocation."}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -307,7 +343,7 @@ export default function CardFormPage() {
                                         <button
                                             type="submit"
                                             className="h-14 px-10 rounded-2xl bg-blue-600 text-white shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:translate-y-0"
-                                            disabled={isLoading}
+                                            disabled={isLoading || !isFormValid}
                                         >
                                             {isLoading ? (
                                                 <>
