@@ -137,19 +137,6 @@ export default function CreateRequestPage() {
                 </div>
             </div>
 
-            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="relative flex-1 max-w-xl">
-                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Scan Registry: Match by card number or Mask ID..."
-                        className="form-input h-12 pl-12 bg-white border-slate-200 shadow-sm focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-semibold text-slate-900"
-                        value={search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                    />
-                </div>
-            </div>
-
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5">
                 <div className="overflow-x-auto">
                     <table className="data-table">
