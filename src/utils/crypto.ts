@@ -28,7 +28,7 @@ async function getKey(password: string, salt: string) {
     );
 }
 
-export async function encryptData(data: any): Promise<string> {
+export async function encryptData(data: unknown): Promise<string> {
     const text = JSON.stringify(data);
     const enc = new TextEncoder();
     const key = await getKey(ENCRYPTION_KEY, ENCRYPTION_SALT);
@@ -47,7 +47,7 @@ export async function encryptData(data: any): Promise<string> {
     return btoa(String.fromCharCode(...combined));
 }
 
-export async function decryptData(encryptedBase64: string): Promise<any> {
+export async function decryptData<T = unknown>(encryptedBase64: string): Promise<T> {
     const combined = new Uint8Array(
         atob(encryptedBase64)
             .split("")
@@ -64,5 +64,5 @@ export async function decryptData(encryptedBase64: string): Promise<any> {
     );
 
     const dec = new TextDecoder();
-    return JSON.parse(dec.decode(decrypted));
+    return JSON.parse(dec.decode(decrypted)) as T;
 }

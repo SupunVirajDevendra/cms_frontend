@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Request, RequestStatus } from "../types/request";
 import {
     getRequests,
@@ -33,11 +33,7 @@ export default function RequestsPage() {
         request: Request | null;
     }>({ isOpen: false, action: null, request: null });
 
-    useEffect(() => {
-        loadRequests();
-    }, [currentPage]);
-
-    const loadRequests = () => {
+    const loadRequests = useCallback(() => {
         setIsLoading(true);
         getRequests(currentPage - 1, 10).then((data) => {
             setRequests(data.content || []);
@@ -47,7 +43,11 @@ export default function RequestsPage() {
             console.error("Failed to fetch requests", err);
             setIsLoading(false);
         });
-    };
+    }, [currentPage]);
+
+    useEffect(() => {
+        loadRequests();
+    }, [loadRequests]);
 
     const filtered =
         activeTab === "ALL"
@@ -70,8 +70,8 @@ export default function RequestsPage() {
 
             loadRequests();
             setConfirmModal({ isOpen: false, action: null, request: null });
-        } catch (err: any) {
-            const message = err.response?.data?.message || err.message || "Security validation failed.";
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Security validation failed.";
             setModalError(message);
         } finally {
             setProcessingId(null);

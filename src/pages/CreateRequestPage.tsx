@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Card } from "../types/card";
+import type { Request } from "../types/request";
 import { getCards, getCardById } from "../services/cardService";
 import { createRequest, getRequests } from "../services/requestService";
 import { formatCurrency } from "../utils/format";
@@ -53,7 +54,7 @@ export default function CreateRequestPage() {
                 setTotalElements(cardsData.totalElements);
 
                 const pendingSet = new Set<string>();
-                requestsData.content.forEach((req: any) => {
+                requestsData.content.forEach((req: Request) => {
                     if (req.statusCode?.toUpperCase() === "PENDING") {
                         if (req.maskId) pendingSet.add(req.maskId);
                         if (req.cardIdentifier) pendingSet.add(req.cardIdentifier);
@@ -97,9 +98,9 @@ export default function CreateRequestPage() {
 
             setSubmittedIds(prev => new Set(prev).add(card.maskId));
             setConfirmModal({ isOpen: false, action: null, card: null });
-        } catch (err: any) {
+        } catch (err) {
             console.error("Failed to lodge request:", err);
-            const errorMsg = err.response?.data?.message || err.message || "Failed to create request";
+            const errorMsg = err instanceof Error ? err.message : "Failed to create request";
             toast.error(errorMsg);
         } finally {
             setProcessingId(null);

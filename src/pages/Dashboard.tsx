@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCardStats } from "../services/cardService";
 import { getRequests, processRequest, getPendingCount } from "../services/requestService";
@@ -31,7 +31,7 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState<TabType>("overview");
     const [stats, setStats] = useState<KpiStat[]>([]);
 
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         const cardStats = await getCardStats();
         const pending = await getPendingCount();
         setStats([
@@ -64,9 +64,12 @@ export default function Dashboard() {
                 Icon: Clock
             },
         ]);
-    };
+    }, []);
 
-    useEffect(() => { loadStats(); }, [activeTab]);
+    useEffect(() => { 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadStats(); 
+    }, [loadStats, activeTab]);
 
     return (
         <div className="page">
@@ -163,7 +166,7 @@ function SearchTab() {
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSearch = async () => {
+    const handleSearch = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getRequests(0, 50);
@@ -181,9 +184,9 @@ function SearchTab() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchType, searchQuery]);
 
-    useEffect(() => { handleSearch(); }, []);
+    useEffect(() => { handleSearch(); }, [handleSearch]);
 
     const getStatusStyles = (status: RequestStatus) => {
         switch (status) {

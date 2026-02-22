@@ -5,6 +5,7 @@ export interface Request {
     requestId: number;
     maskId: string;
     cardNumber: string;
+    cardIdentifier?: string;
     requestReasonCode: RequestType;
     statusCode: RequestStatus;
     createTime: string;

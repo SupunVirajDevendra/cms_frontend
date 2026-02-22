@@ -27,7 +27,7 @@ export default function CardsPage() {
                         const card = await getCardById(search.trim());
                         setCards([card]);
                         setTotalElements(1);
-                    } catch (err) {
+                    } catch {
                         setCards([]);
                         setTotalElements(0);
                     }

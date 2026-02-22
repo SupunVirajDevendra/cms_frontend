@@ -23,7 +23,7 @@ export async function processRequest(id: number | string, approve: boolean): Pro
 export async function createRequest(
     maskId: string,
     type: RequestType
-): Promise<any> {
+): Promise<{ requestId: number }> {
     const response = await api.post(REQUESTS_ENDPOINT, {
         cardIdentifier: maskId,
         requestReasonCode: type,
@@ -43,7 +43,7 @@ export async function getPendingCount(): Promise<number> {
 export async function getPendingRequestForCard(maskId: string): Promise<Request | undefined> {
     try {
         const response = await getRequests(0, 1000);
-        return response.content.find((r: any) =>
+        return response.content.find((r: Request) =>
             (r.maskId === maskId || r.cardIdentifier === maskId) &&
             r.statusCode?.toUpperCase() === "PENDING"
         );

@@ -191,9 +191,9 @@ export default function CardFormPage() {
             const msg = action === "ACTI" ? "Activation Request Lodged" : "Decommission Request Lodged";
             toast.success(msg, { icon: action === "ACTI" ? "⚡" : "🛑" });
             setTimeout(() => navigate("/cards"), 1500);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Action commitment failure:", err);
-            const errorMsg = err.response?.data?.message || err.message || "Process Fault: Action could not be committed.";
+            const errorMsg = err instanceof Error ? err.message : "Process Fault: Action could not be committed.";
             toast.error(errorMsg);
         } finally {
             setIsLoading(false);

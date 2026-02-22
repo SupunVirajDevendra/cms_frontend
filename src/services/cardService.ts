@@ -53,7 +53,7 @@ export async function updateCardStatus(
     return response.data;
 }
 
-export async function submitCardRequest(maskId: string, reasonCode: "ACTI" | "CDCL"): Promise<any> {
+export async function submitCardRequest(maskId: string, reasonCode: "ACTI" | "CDCL"): Promise<{ requestId: number }> {
     const REQUESTS_ENDPOINT = import.meta.env.VITE_API_CARD_REQUESTS || "/api/card-requests";
     const response = await api.post(REQUESTS_ENDPOINT, {
         cardIdentifier: maskId,
