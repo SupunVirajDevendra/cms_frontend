@@ -35,8 +35,9 @@ api.interceptors.request.use(async (config) => {
     }
 
     const isAuthEndpoint = config.url?.includes("/auth/login") || config.url?.includes("/auth/register");
+    const isReportEndpoint = config.url?.includes("/reports/");
     
-    if (ENABLE_ENCRYPTION && !isAuthEndpoint && config.data && ["post", "put", "patch"].includes(config.method || "")) {
+    if (ENABLE_ENCRYPTION && !isAuthEndpoint && !isReportEndpoint && config.data && ["post", "put", "patch"].includes(config.method || "")) {
         try {
             const encrypted = await encryptData(config.data);
             config.data = { payload: encrypted };
@@ -67,6 +68,8 @@ api.interceptors.response.use(
                 case 401:
                     if (error.config?.url?.includes("/auth/")) {
                         message = data?.message || "Invalid username or password.";
+                    } else if (error.config?.url?.includes("/reports/")) {
+                        message = data?.message || "Download failed. Please try again.";
                     } else {
                         message = "Session expired. Please log in again.";
                         clearAuth();

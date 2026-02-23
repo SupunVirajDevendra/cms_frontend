@@ -9,6 +9,7 @@ import {
 } from "../services/reportService";
 import { FileText, Download, Filter, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/format";
 
 const statusOptions = [
     { value: "", label: "All Status" },
@@ -76,10 +77,14 @@ export default function CardReportPage() {
         setDownloading(true);
         try {
             const blob = await downloadCardReportPdf({ ...filters, status });
+            if (blob.size === 0) {
+                throw new Error("Empty PDF response");
+            }
             saveCardReportPdf(blob);
             toast.success("PDF downloaded successfully");
-        } catch {
-            toast.error("Failed to download PDF");
+        } catch (err) {
+            console.error("PDF download error:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to download PDF");
         } finally {
             setDownloading(false);
         }
@@ -205,10 +210,10 @@ export default function CardReportPage() {
                                     <tr key={card.maskId} className="table-row">
                                         <td className="font-mono">{card.cardNumber}</td>
                                         <td>{getStatusBadge(card.statusCode)}</td>
-                                        <td className="text-right">${card.creditLimit.toLocaleString()}</td>
-                                        <td className="text-right">${card.availableCreditLimit.toLocaleString()}</td>
-                                        <td className="text-right">${card.cashLimit.toLocaleString()}</td>
-                                        <td className="text-right">${card.availableCashLimit.toLocaleString()}</td>
+                                        <td className="text-right">{formatCurrency(card.creditLimit)}</td>
+                                        <td className="text-right">{formatCurrency(card.availableCreditLimit)}</td>
+                                        <td className="text-right">{formatCurrency(card.cashLimit)}</td>
+                                        <td className="text-right">{formatCurrency(card.availableCashLimit)}</td>
                                         <td>{card.expiryDate}</td>
                                         <td>{new Date(card.lastUpdateTime).toLocaleDateString()}</td>
                                         <td>{card.lastUpdateUser || "-"}</td>

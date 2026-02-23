@@ -76,10 +76,14 @@ export default function RequestReportPage() {
         setDownloading(true);
         try {
             const blob = await downloadRequestReportPdf({ ...filters, status });
+            if (blob.size === 0) {
+                throw new Error("Empty PDF response");
+            }
             saveRequestReportPdf(blob);
             toast.success("PDF downloaded successfully");
-        } catch {
-            toast.error("Failed to download PDF");
+        } catch (err) {
+            console.error("PDF download error:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to download PDF");
         } finally {
             setDownloading(false);
         }
