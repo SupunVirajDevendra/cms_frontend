@@ -1,6 +1,7 @@
 import axios, { type AxiosError } from "axios";
 import { encryptData } from "../utils/crypto";
 import toast from "react-hot-toast";
+import { getToken, clearAuth } from "./authService";
 
 const ENABLE_ENCRYPTION = import.meta.env.VITE_ENABLE_ENCRYPTION === "true";
 
@@ -28,7 +29,14 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-    if (ENABLE_ENCRYPTION && config.data && ["post", "put", "patch"].includes(config.method || "")) {
+    const token = getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    const isAuthEndpoint = config.url?.includes("/auth/login") || config.url?.includes("/auth/register");
+    
+    if (ENABLE_ENCRYPTION && !isAuthEndpoint && config.data && ["post", "put", "patch"].includes(config.method || "")) {
         try {
             const encrypted = await encryptData(config.data);
             config.data = { payload: encrypted };
@@ -57,7 +65,13 @@ api.interceptors.response.use(
                     message = data?.message || "Bad request. Please check your input.";
                     break;
                 case 401:
-                    message = "Unauthorized. Please log in again.";
+                    if (error.config?.url?.includes("/auth/")) {
+                        message = data?.message || "Invalid username or password.";
+                    } else {
+                        message = "Session expired. Please log in again.";
+                        clearAuth();
+                        window.location.href = "/login";
+                    }
                     break;
                 case 403:
                     message = "Forbidden. You don't have permission for this action.";

@@ -25,6 +25,8 @@ export default function RequestTable({
                         <th>Category</th>
                         <th>Workflow</th>
                         <th>Timestamp</th>
+                        <th>Requested By</th>
+                        <th>Processed By</th>
                         <th className="text-right">Actions</th>
                     </tr>
                 </thead>
@@ -32,12 +34,12 @@ export default function RequestTable({
                     {isLoading ? (
                         [...Array(5)].map((_, i) => (
                             <tr key={i} className="animate-pulse">
-                                <td colSpan={5} className="py-4 px-4"><div className="h-4 bg-slate-100 rounded" /></td>
+                                <td colSpan={7} className="py-4 px-4"><div className="h-4 bg-slate-100 rounded" /></td>
                             </tr>
                         ))
                     ) : requests.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="py-20 text-center">
+                            <td colSpan={7} className="py-20 text-center">
                                 <div className="flex flex-col items-center gap-2">
                                     <span className="text-4xl">📂</span>
                                     <p className="text-base font-semibold text-slate-900">Queue is clear</p>

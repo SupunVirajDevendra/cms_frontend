@@ -9,4 +9,6 @@ export interface Request {
     requestReasonCode: RequestType;
     statusCode: RequestStatus;
     createTime: string;
+    requestUser?: string;
+    approvedUser?: string;
 }

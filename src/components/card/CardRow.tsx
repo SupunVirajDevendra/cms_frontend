@@ -60,6 +60,11 @@ export default function CardRow({ card, onEdit }: CardRowProps) {
                     {card.expiryDate}
                 </span>
             </td>
+            <td className="px-6">
+                <span className="text-sm font-semibold text-slate-600">
+                    {card.lastUpdateUser || "-"}
+                </span>
+            </td>
             <td className="px-6 text-right">
                 <button
                     className="btn btn-sm btn-outline h-9 px-4 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] opacity-0 group-hover:opacity-100 transition-all active:scale-95"

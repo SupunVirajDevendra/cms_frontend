@@ -10,6 +10,7 @@ export interface Card {
     availableCashLimit: number;
     expiryDate: string;
     lastUpdateTime: string;
+    lastUpdateUser?: string;
 }
 
 export interface CardFormData {

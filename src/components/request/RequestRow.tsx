@@ -42,6 +42,16 @@ export default function RequestRow({
                     {request.createTime ? formatDate(request.createTime) : "Pending Sync"}
                 </span>
             </td>
+            <td className="px-4 py-4">
+                <span className="text-sm font-semibold text-slate-600">
+                    {request.requestUser || "-"}
+                </span>
+            </td>
+            <td className="px-4 py-4">
+                <span className="text-sm font-semibold text-slate-600">
+                    {request.approvedUser || "-"}
+                </span>
+            </td>
             <td className="px-4 py-4 text-right">
                 {isPending ? (
                     <div className="flex justify-end gap-2">
