@@ -186,7 +186,6 @@ export default function RequestReportPage() {
                         <thead>
                             <tr>
                                 <th>Request ID</th>
-                                <th>Card ID</th>
                                 <th>Card Number</th>
                                 <th>Type</th>
                                 <th>Status</th>
@@ -198,17 +197,16 @@ export default function RequestReportPage() {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="py-10 text-center text-slate-400">Loading...</td>
+                                    <td colSpan={7} className="py-10 text-center text-slate-400">Loading...</td>
                                 </tr>
                             ) : requests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="py-10 text-center text-slate-400">No data found</td>
+                                    <td colSpan={7} className="py-10 text-center text-slate-400">No data found</td>
                                 </tr>
                             ) : (
                                 requests.map(req => (
                                     <tr key={req.requestId} className="table-row">
                                         <td className="font-mono text-xs">{req.requestId}</td>
-                                        <td className="font-medium">{req.maskId}</td>
                                         <td className="font-mono">{req.cardNumber}</td>
                                         <td>{getTypeLabel(req.requestReasonCode)}</td>
                                         <td>{getStatusBadge(req.statusCode)}</td>
