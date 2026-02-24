@@ -9,7 +9,7 @@ import {
 } from "../services/reportService";
 import { FileText, Download, Filter, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
-import { formatCurrency } from "../utils/format";
+import { formatCurrency, formatDate } from "../utils/format";
 
 const statusOptions = [
     { value: "", label: "All Status" },
@@ -206,16 +206,16 @@ export default function CardReportPage() {
                                     <td colSpan={9} className="py-10 text-center text-slate-400">No data found</td>
                                 </tr>
                             ) : (
-                                cards.map(card => (
-                                    <tr key={card.maskId} className="table-row">
+                                cards.map((card, index) => (
+                                    <tr key={card.maskId || index} className="table-row">
                                         <td className="font-mono">{card.cardNumber}</td>
                                         <td>{getStatusBadge(card.statusCode)}</td>
                                         <td className="text-right">{formatCurrency(card.creditLimit)}</td>
                                         <td className="text-right">{formatCurrency(card.availableCreditLimit)}</td>
                                         <td className="text-right">{formatCurrency(card.cashLimit)}</td>
                                         <td className="text-right">{formatCurrency(card.availableCashLimit)}</td>
-                                        <td>{card.expiryDate}</td>
-                                        <td>{new Date(card.lastUpdateTime).toLocaleDateString()}</td>
+                                        <td>{Array.isArray(card.expiryDate) ? `${card.expiryDate[0]}-${String(card.expiryDate[1]).padStart(2, '0')}` : card.expiryDate}</td>
+                                        <td>{formatDate(card.lastUpdateTime)}</td>
                                         <td>{card.lastUpdateUser || "-"}</td>
                                     </tr>
                                 ))

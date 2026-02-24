@@ -68,7 +68,7 @@ export async function submitCardRequest(maskId: string, reasonCode: "ACTI" | "CD
 
 export async function getCardStats() {
     try {
-        const data = await getCards(0, 1000);
+        const data = await getCards(0, 100);
         const total = data.totalElements;
         const active = data.content.filter(c => c.statusCode === "CACT").length;
         const inactive = data.content.filter(c => c.statusCode === "IACT").length;
