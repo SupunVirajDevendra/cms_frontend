@@ -9,6 +9,7 @@ import {
 } from "../services/reportService";
 import { FileText, Download, Filter, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatDate } from "../utils/format";
 
 const statusOptions = [
     { value: "", label: "All Status" },
@@ -214,7 +215,7 @@ export default function RequestReportPage() {
                                         <td className="font-mono">{req.cardNumber}</td>
                                         <td>{getTypeLabel(req.requestReasonCode)}</td>
                                         <td>{getStatusBadge(req.statusCode)}</td>
-                                        <td>{new Date(req.createTime).toLocaleDateString()}</td>
+                                        <td>{formatDate(req.createTime)}</td>
                                         <td>{req.requestUser || "-"}</td>
                                         <td>{req.approvedUser || "-"}</td>
                                     </tr>

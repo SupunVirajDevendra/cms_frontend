@@ -8,16 +8,19 @@ export async function getRequests(page: number = 0, size: number = 10): Promise<
     const response = await api.get<PaginatedResponse<Request>>(`${REQUESTS_ENDPOINT}/paginated`, {
         params: { page, size }
     });
-    return response.data;
+    const result = response.data as unknown as { data: PaginatedResponse<Request> };
+    return result.data;
 }
 export async function getRequestById(id: number | string): Promise<Request> {
     const response = await api.get<Request>(`${REQUESTS_ENDPOINT}/${id}`);
-    return response.data;
+    const result = response.data as unknown as { data: Request };
+    return result.data;
 }
 
 export async function processRequest(id: number | string, approve: boolean): Promise<Request> {
     const response = await api.put<Request>(`${REQUESTS_ENDPOINT}/${id}/process`, { approve });
-    return response.data;
+    const result = response.data as unknown as { data: Request };
+    return result.data;
 }
 
 export async function createRequest(
@@ -28,7 +31,8 @@ export async function createRequest(
         cardIdentifier: maskId,
         requestReasonCode: type,
     });
-    return response.data;
+    const result = response.data as unknown as { data: { requestId: number } };
+    return result.data;
 }
 
 export async function getPendingCount(): Promise<number> {

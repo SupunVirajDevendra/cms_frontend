@@ -8,8 +8,8 @@ export interface Card {
     cashLimit: number;
     availableCreditLimit: number;
     availableCashLimit: number;
-    expiryDate: string;
-    lastUpdateTime: string;
+    expiryDate: string | [number, number, number];
+    lastUpdateTime: string | [number, number, number, number, number, number, number];
     lastUpdateUser?: string;
 }
 

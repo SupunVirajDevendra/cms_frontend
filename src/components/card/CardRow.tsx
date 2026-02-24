@@ -57,7 +57,9 @@ export default function CardRow({ card, onEdit }: CardRowProps) {
             </td>
             <td className="px-6">
                 <span className="text-sm text-slate-600 font-bold tabular-nums">
-                    {card.expiryDate}
+                    {Array.isArray(card.expiryDate) 
+                        ? `${card.expiryDate[0]}-${String(card.expiryDate[1]).padStart(2, '0')}` 
+                        : card.expiryDate}
                 </span>
             </td>
             <td className="px-6">

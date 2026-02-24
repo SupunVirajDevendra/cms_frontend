@@ -7,7 +7,7 @@ interface CardTableProps {
     onEdit?: (card: Card) => void;
 }
 
-export default function CardTable({ cards, isLoading, onEdit }: CardTableProps) {
+export default function CardTable({ cards = [], isLoading, onEdit }: CardTableProps) {
     return (
         <div className="overflow-x-auto">
             <table className="data-table">
@@ -16,9 +16,9 @@ export default function CardTable({ cards, isLoading, onEdit }: CardTableProps) 
                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Card Instrument</th>
                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Operational Status</th>
                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Liquidity & Limits</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Validity</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Expire Date</th>
                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Updated By</th>
-                        <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Management</th>
+                        <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Edit</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

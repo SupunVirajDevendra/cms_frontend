@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import type { Card } from "../types/card";
-import type { Request } from "../types/request";
 import { getCards, getCardById } from "../services/cardService";
 import { createRequest, getRequests } from "../services/requestService";
 import { formatCurrency } from "../utils/format";
 import StatusBadge from "../components/common/StatusBadge";
 import ConfirmModal from "../components/common/ConfirmModal";
 import toast from "react-hot-toast";
-import { Search, ShieldAlert, CheckCircle, XCircle, Zap, Ban, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, ShieldAlert, XCircle, Zap, Ban, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
@@ -15,11 +14,11 @@ export default function CreateRequestPage() {
     const [cards, setCards] = useState<Card[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [searchInput, setSearchInput] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set());
-    const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set());
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -27,40 +26,39 @@ export default function CreateRequestPage() {
         card: Card | null;
     }>({ isOpen: false, action: null, card: null });
 
+    const handleSearch = () => {
+        setSearch(searchInput);
+        setCurrentPage(1);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const requestsPromise = getRequests(0, 1000);
-                let cardsPromise;
-
-                if (search.trim()) {
-                    cardsPromise = getCardById(search.trim())
-                        .then((card) => ({
-                            content: [card],
-                            totalElements: 1,
-                        }))
-                        .catch(() => ({
-                            content: [],
-                            totalElements: 0,
-                        }));
-                } else {
-                    cardsPromise = getCards(currentPage - 1, PAGE_SIZE);
-                }
-
-                const [cardsData, requestsData] = await Promise.all([cardsPromise, requestsPromise]);
+                const [cardsData, requestsData] = await Promise.all([
+                    search.trim() 
+                        ? getCardById(search.trim()).then(card => ({ content: [card], totalElements: 1 })).catch(() => ({ content: [], totalElements: 0 }))
+                        : getCards(currentPage - 1, PAGE_SIZE),
+                    getRequests(0, 100).catch(() => ({ content: [], totalElements: 0 }))
+                ]);
 
                 setCards(cardsData.content);
                 setTotalElements(cardsData.totalElements);
 
                 const pendingSet = new Set<string>();
-                requestsData.content.forEach((req: Request) => {
-                    if (req.statusCode?.toUpperCase() === "PENDING") {
+                requestsData.content.forEach((req: any) => {
+                    if (req.statusCode === "PENDING") {
                         if (req.maskId) pendingSet.add(req.maskId);
                         if (req.cardIdentifier) pendingSet.add(req.cardIdentifier);
                     }
                 });
-                setPendingRequests(pendingSet);
+                setSubmittedIds(pendingSet);
             } catch (err) {
                 console.error("Failed to load data:", err);
                 toast.error("Failed to load data");
@@ -69,7 +67,7 @@ export default function CreateRequestPage() {
             }
         };
 
-        const timer = setTimeout(fetchData, search ? 500 : 0);
+        const timer = setTimeout(fetchData, search ? 300 : 0);
         return () => clearTimeout(timer);
     }, [currentPage, search]);
 
@@ -108,7 +106,7 @@ export default function CreateRequestPage() {
     };
 
     const getActionButton = (card: Card) => {
-        const isPending = submittedIds.has(card.maskId) || pendingRequests.has(card.maskId);
+        const isPending = submittedIds.has(card.maskId);
         const isProcessing = processingId === card.maskId;
 
         if (card.statusCode === "IACT") {
@@ -159,14 +157,19 @@ export default function CreateRequestPage() {
                     <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Scan Registry: Match by card number or Mask ID..."
-                        className="form-input h-12 pl-12 bg-white border-slate-200 shadow-sm focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-semibold text-slate-900"
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setCurrentPage(1);
-                        }}
+                        placeholder="Identify card number"
+                        className="form-input h-12 pl-12 pr-24 bg-white border-slate-200 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-semibold text-slate-900"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
+                    <button
+                        type="button"
+                        onClick={handleSearch}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-4 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Search
+                    </button>
                 </div>
             </div>
 

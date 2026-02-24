@@ -2,12 +2,14 @@ import { useEffect, useState, useCallback } from "react";
 import type { Request, RequestStatus } from "../types/request";
 import {
     getRequests,
+    getRequestById,
     processRequest,
 } from "../services/requestService";
 import RequestTable from "../components/request/RequestTable";
 import ConfirmModal from "../components/common/ConfirmModal";
+import { formatDate } from "../utils/format";
 import toast from "react-hot-toast";
-import { List, Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { List, Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, X } from "lucide-react";
 
 type TabKey = "ALL" | RequestStatus;
 
@@ -27,6 +29,11 @@ export default function RequestsPage() {
     const [processingId, setProcessingId] = useState<string | number | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
 
+    const [viewModal, setViewModal] = useState<{
+        isOpen: boolean;
+        request: Request | null;
+    }>({ isOpen: false, request: null });
+
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         action: "approve" | "reject" | null;
@@ -35,14 +42,16 @@ export default function RequestsPage() {
 
     const loadRequests = useCallback(() => {
         setIsLoading(true);
-        getRequests(currentPage - 1, 10).then((data) => {
-            setRequests(data.content || []);
-            setTotalElements(data.totalElements || 0);
-            setIsLoading(false);
-        }).catch(err => {
-            console.error("Failed to fetch requests", err);
-            setIsLoading(false);
-        });
+        getRequests(currentPage - 1, 5)
+            .then((data) => {
+                setRequests(data.content || []);
+                setTotalElements(data.totalElements || 0);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to fetch requests", err);
+                setIsLoading(false);
+            });
     }, [currentPage]);
 
     useEffect(() => {
@@ -75,6 +84,17 @@ export default function RequestsPage() {
             setModalError(message);
         } finally {
             setProcessingId(null);
+        }
+    };
+
+    const handleView = async (req: Request) => {
+        try {
+            const requestId = typeof req.requestId === 'string' ? parseInt(req.requestId, 10) : req.requestId;
+            const detailed = await getRequestById(requestId);
+            setViewModal({ isOpen: true, request: detailed });
+        } catch (err) {
+            console.error("View error:", err);
+            toast.error("Failed to load request details");
         }
     };
 
@@ -121,6 +141,7 @@ export default function RequestsPage() {
                     processingId={processingId}
                     onApprove={(req) => setConfirmModal({ isOpen: true, action: "approve", request: req })}
                     onReject={(req) => setConfirmModal({ isOpen: true, action: "reject", request: req })}
+                    onView={handleView}
                 />
             </div>
 
@@ -142,8 +163,8 @@ export default function RequestsPage() {
                     </button>
                     <button
                         className="btn btn-outline btn-sm px-4 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px]"
-                        onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalElements / 10), p + 1))}
-                        disabled={currentPage >= Math.ceil(totalElements / 10) || isLoading}
+                        onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalElements / 5), p + 1))}
+                        disabled={currentPage >= Math.ceil(totalElements / 5) || isLoading}
                     >
                         Next
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -166,6 +187,55 @@ export default function RequestsPage() {
                 onConfirm={handleConfirm}
                 onCancel={() => setConfirmModal({ isOpen: false, action: null, request: null })}
             />
+
+            {viewModal.isOpen && viewModal.request && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-900">Request Details</h3>
+                            <button onClick={() => setViewModal({ isOpen: false, request: null })} className="text-slate-400 hover:text-slate-600">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Request ID</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.requestId}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Status</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.statusCode}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Card Number</p>
+                                    <p className="font-mono text-sm font-semibold text-slate-900">{viewModal.request.cardNumber}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Mask ID</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.maskId}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Request Type</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.requestReasonCode}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Created</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.createTime ? formatDate(viewModal.request.createTime) : '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Requested By</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.requestUser || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">Processed By</p>
+                                    <p className="font-semibold text-slate-900">{viewModal.request.approvedUser || '-'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

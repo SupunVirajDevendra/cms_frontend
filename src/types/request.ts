@@ -8,7 +8,7 @@ export interface Request {
     cardIdentifier?: string;
     requestReasonCode: RequestType;
     statusCode: RequestStatus;
-    createTime: string;
+    createTime: string | [number, number, number, number, number, number, number];
     requestUser?: string;
     approvedUser?: string;
 }

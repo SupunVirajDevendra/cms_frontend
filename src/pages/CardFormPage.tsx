@@ -1,10 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CardFormData } from "../types/card";
-import { createCard, getCardById, updateCard, submitCardRequest } from "../services/cardService";
-import { getPendingRequestForCard } from "../services/requestService";
+import { createCard, getCardById, updateCard } from "../services/cardService";
 import toast from "react-hot-toast";
-import { CreditCard, Calendar, Wallet, Banknote, Save, X, ArrowLeft, ShieldCheck, Info, Activity, PowerOff, CheckCircle } from "lucide-react";
+import { CreditCard, Calendar, Wallet, Banknote, Save, X, ArrowLeft, ShieldCheck, Info } from "lucide-react";
 
 interface FormErrors {
     cardNumber?: string;
@@ -27,7 +26,6 @@ export default function CardFormPage() {
     const [errors, setErrors] = useState<FormErrors>({});
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(isEdit);
-    const [isActionSubmitted, setIsActionSubmitted] = useState(false);
 
     const isFormValid = useMemo(() => {
         const currentDate = new Date();
@@ -56,50 +54,28 @@ export default function CardFormPage() {
 
     useEffect(() => {
         if (isEdit && id) {
-            // Check local storage for immediate feedback
-            if (localStorage.getItem(`card_pending_${id}`)) {
-                setIsActionSubmitted(true);
-            }
-
             setIsFetching(true);
 
-            // Fetch card data and pending request status in parallel
-            Promise.all([
-                getCardById(id),
-                getPendingRequestForCard(id)
-            ]).then(([card, pendingRequest]) => {
-                if (card) {
-                    // Convert YYYY-MM-DD to YYYY-MM for HTML5 month input
-                    const monthValue = card.expiryDate.split("-").slice(0, 2).join("-");
-                    setForm({
-                        cardNumber: card.cardNumber,
-                        expiryDate: monthValue,
-                        creditLimit: card.creditLimit,
-                        cashLimit: card.cashLimit,
-                    });
-                }
-
-                // If backend confirms pending request, enforce it.
-                if (pendingRequest) {
-                    setIsActionSubmitted(true);
-                    localStorage.setItem(`card_pending_${id}`, 'true');
-                } else {
-                    // Optional: if backend says NO pending request, should we clear localStorage?
-                    // To be safe against stale local state:
-                    // Only clear if we are sure. For now, let's trust the backend most.
-                    // If backend returns explicitly 'undefined' (meaning no pending request found), 
-                    // AND we have local storage set, it might be a completed request.
-                    // Let's clear it to allow new actions.
-                    if (localStorage.getItem(`card_pending_${id}`)) {
-                        localStorage.removeItem(`card_pending_${id}`);
-                        setIsActionSubmitted(false);
+            getCardById(id)
+                .then((card) => {
+                    if (card) {
+                        const monthValue = Array.isArray(card.expiryDate)
+                            ? `${card.expiryDate[0]}-${String(card.expiryDate[1]).padStart(2, '0')}`
+                            : card.expiryDate.split("-").slice(0, 2).join("-");
+                        setForm({
+                            cardNumber: card.cardNumber,
+                            expiryDate: monthValue,
+                            creditLimit: card.creditLimit,
+                            cashLimit: card.cashLimit,
+                        });
                     }
-                }
-            }).catch(() => {
-                toast.error("Failed to load card details.");
-            }).finally(() => {
-                setIsFetching(false);
-            });
+                })
+                .catch(() => {
+                    toast.error("Failed to load card details.");
+                })
+                .finally(() => {
+                    setIsFetching(false);
+                });
         }
     }, [id, isEdit]);
 
@@ -152,49 +128,17 @@ export default function CardFormPage() {
         if (!validate()) return;
         setIsLoading(true);
         try {
-            // Ensure YYYY-MM-DD format for backend
-            let payloadDate = form.expiryDate;
-            if (payloadDate.split("-").length === 2) {
-                // Default to last day of month or just 01 if backend accepts it. 
-                // Given the user example "2026-12-31", let's try to be smart or consistent.
-                // For simplicity, appending -01 is common, but let's check if we can do better.
-                payloadDate = `${form.expiryDate}-01`;
-            }
-
-            const payload = {
-                ...form,
-                expiryDate: payloadDate
-            };
-
             if (isEdit && id) {
-                await updateCard(id, payload);
+                const { cardNumber, ...updateData } = form;
+                await updateCard(id, updateData);
                 toast.success("Global Ledger Updated", { icon: "🛡️" });
             } else {
-                await createCard(payload);
+                await createCard(form);
                 toast.success("New Instrument Provisioned", { icon: "💳" });
             }
             navigate("/cards");
         } catch {
             toast.error("Endpoint Connection Fault: Save failed.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleAction = async (action: "ACTI" | "CDCL") => {
-        if (!form.cardNumber) return;
-        setIsLoading(true);
-        try {
-            await submitCardRequest(id!, action);
-            setIsActionSubmitted(true);
-            localStorage.setItem(`card_pending_${id}`, "true");
-            const msg = action === "ACTI" ? "Activation Request Lodged" : "Decommission Request Lodged";
-            toast.success(msg, { icon: action === "ACTI" ? "⚡" : "🛑" });
-            setTimeout(() => navigate("/cards"), 1500);
-        } catch (err) {
-            console.error("Action commitment failure:", err);
-            const errorMsg = err instanceof Error ? err.message : "Process Fault: Action could not be committed.";
-            toast.error(errorMsg);
         } finally {
             setIsLoading(false);
         }
@@ -463,48 +407,6 @@ export default function CardFormPage() {
                             ))}
                         </div>
                     </div>
-
-                    {isEdit && (
-                        <div className="rounded-[3rem] border border-slate-200 bg-white p-10 2xl:p-12 shadow-sm animate-[fade-in-up_0.8s_ease-out]">
-                            <div className="flex items-center gap-3 mb-10">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500">
-                                    <Activity className="h-5 w-5" />
-                                </div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Life Cycle Management</h4>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => handleAction("ACTI")}
-                                    disabled={isLoading || isActionSubmitted}
-                                    className="group flex flex-col items-center gap-4 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-blue-600 hover:text-white transition-all duration-500 active:scale-95 disabled:opacity-30 disabled:grayscale"
-                                >
-                                    <div className="h-10 w-10 rounded-xl bg-white text-blue-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                        <CheckCircle className="h-6 w-6" />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">
-                                        {isActionSubmitted ? "LODGED" : "Activate Instrument"}
-                                    </span>
-                                </button>
-
-                                <button
-                                    onClick={() => handleAction("CDCL")}
-                                    disabled={isLoading || isActionSubmitted}
-                                    className="group flex flex-col items-center gap-4 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-red-600 hover:text-white transition-all duration-500 active:scale-95 disabled:opacity-30 disabled:grayscale"
-                                >
-                                    <div className="h-10 w-10 rounded-xl bg-white text-red-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                        <PowerOff className="h-5 w-5" />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">
-                                        {isActionSubmitted ? "LODGED" : "Terminate Instrument"}
-                                    </span>
-                                </button>
-                            </div>
-                            <p className="mt-8 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
-                                Warning: Actions are recorded in the central audit rail
-                            </p>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

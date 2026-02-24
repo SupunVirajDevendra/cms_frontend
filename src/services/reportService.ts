@@ -56,11 +56,12 @@ export async function downloadCardReportCsv(filters: ReportFilters): Promise<Blo
     const params = new URLSearchParams({
         startDate: filters.startDate,
         endDate: filters.endDate,
+        format: "csv",
     });
     if (filters.status) {
         params.append("status", filters.status);
     }
-    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/cards/csv?${params}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/cards?${params}`);
     const contentType = response.headers.get("content-type");
     
     if (!response.ok) {
@@ -70,7 +71,6 @@ export async function downloadCardReportCsv(filters: ReportFilters): Promise<Blo
     
     const blob = await response.blob();
     
-    // Check if it's actually a CSV
     if (!contentType?.includes("csv") || blob.size < 10) {
         const text = await blob.text();
         throw new Error(text || "Backend did not return valid CSV data");
@@ -83,11 +83,12 @@ export async function downloadCardReportPdf(filters: ReportFilters): Promise<Blo
     const params = new URLSearchParams({
         startDate: filters.startDate,
         endDate: filters.endDate,
+        format: "pdf",
     });
     if (filters.status) {
         params.append("status", filters.status);
     }
-    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/cards/pdf?${params}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/cards?${params}`);
     const contentType = response.headers.get("content-type");
     
     if (!response.ok) {
@@ -97,7 +98,6 @@ export async function downloadCardReportPdf(filters: ReportFilters): Promise<Blo
     
     const blob = await response.blob();
     
-    // Check if it's actually a PDF
     if (!contentType?.includes("pdf") || blob.size < 1000) {
         const text = await blob.text();
         throw new Error(text || "Backend did not return a valid PDF");
@@ -110,11 +110,12 @@ export async function downloadRequestReportCsv(filters: ReportFilters): Promise<
     const params = new URLSearchParams({
         startDate: filters.startDate,
         endDate: filters.endDate,
+        format: "csv",
     });
     if (filters.status) {
         params.append("status", filters.status);
     }
-    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/requests/csv?${params}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/requests?${params}`);
     const contentType = response.headers.get("content-type");
     
     if (!response.ok) {
@@ -124,7 +125,6 @@ export async function downloadRequestReportCsv(filters: ReportFilters): Promise<
     
     const blob = await response.blob();
     
-    // Check if it's actually a CSV
     if (!contentType?.includes("csv") || blob.size < 10) {
         const text = await blob.text();
         throw new Error(text || "Backend did not return valid CSV data");
@@ -137,11 +137,12 @@ export async function downloadRequestReportPdf(filters: ReportFilters): Promise<
     const params = new URLSearchParams({
         startDate: filters.startDate,
         endDate: filters.endDate,
+        format: "pdf",
     });
     if (filters.status) {
         params.append("status", filters.status);
     }
-    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/requests/pdf?${params}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}${REPORTS_ENDPOINT}/requests?${params}`);
     const contentType = response.headers.get("content-type");
     
     if (!response.ok) {
@@ -151,7 +152,6 @@ export async function downloadRequestReportPdf(filters: ReportFilters): Promise<
     
     const blob = await response.blob();
     
-    // Check if it's actually a PDF
     if (!contentType?.includes("pdf") || blob.size < 1000) {
         const text = await blob.text();
         throw new Error(text || "Backend did not return a valid PDF");

@@ -14,13 +14,12 @@ export interface PaginatedResponse<T> {
 const CARDS_ENDPOINT = import.meta.env.VITE_API_CARDS || "/api/cards";
 
 export async function getCards(page: number = 0, size: number = 5): Promise<PaginatedResponse<Card>> {
-    console.log("Fetching cards...", { page, size });
     try {
         const response = await api.get<PaginatedResponse<Card>>(`${CARDS_ENDPOINT}/paginated`, {
             params: { page, size },
         });
-        console.log("Cards fetched successfully:", response.data);
-        return response.data;
+        const result = response.data as unknown as { data: PaginatedResponse<Card> };
+        return result.data;
     } catch (error) {
         console.error("Error fetching cards:", error);
         throw error;
@@ -29,12 +28,14 @@ export async function getCards(page: number = 0, size: number = 5): Promise<Pagi
 
 export async function getCardById(maskId: string): Promise<Card> {
     const response = await api.get<Card>(`${CARDS_ENDPOINT}/${maskId}`);
-    return response.data;
+    const result = response.data as unknown as { data: Card };
+    return result.data;
 }
 
 export async function createCard(data: CardFormData): Promise<Card> {
     const response = await api.post<Card>(CARDS_ENDPOINT, data);
-    return response.data;
+    const result = response.data as unknown as { data: Card };
+    return result.data;
 }
 
 export async function updateCard(
@@ -42,7 +43,8 @@ export async function updateCard(
     data: Partial<CardFormData>
 ): Promise<Card> {
     const response = await api.put<Card>(`${CARDS_ENDPOINT}/${maskId}`, data);
-    return response.data;
+    const result = response.data as unknown as { data: Card };
+    return result.data;
 }
 
 export async function updateCardStatus(
@@ -50,7 +52,8 @@ export async function updateCardStatus(
     status: Card["statusCode"]
 ): Promise<Card> {
     const response = await api.put<Card>(`${CARDS_ENDPOINT}/${maskId}/status`, { status });
-    return response.data;
+    const result = response.data as unknown as { data: Card };
+    return result.data;
 }
 
 export async function submitCardRequest(maskId: string, reasonCode: "ACTI" | "CDCL"): Promise<{ requestId: number }> {
@@ -59,7 +62,8 @@ export async function submitCardRequest(maskId: string, reasonCode: "ACTI" | "CD
         cardIdentifier: maskId,
         requestReasonCode: reasonCode
     });
-    return response.data;
+    const result = response.data as unknown as { data: { requestId: number } };
+    return result.data;
 }
 
 export async function getCardStats() {

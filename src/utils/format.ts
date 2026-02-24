@@ -7,8 +7,19 @@ export function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
-export function formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
+export function formatDate(dateValue: string | [number, number, number, number, number, number, number]): string {
+    let date: Date;
+    
+    if (Array.isArray(dateValue)) {
+        date = new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3], dateValue[4], dateValue[5]);
+    } else {
+        date = new Date(dateValue);
+    }
+    
+    if (isNaN(date.getTime())) {
+        return "-";
+    }
+    
     return new Intl.DateTimeFormat("en-US", {
         year: "numeric",
         month: "short",

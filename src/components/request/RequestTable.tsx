@@ -7,6 +7,7 @@ interface RequestTableProps {
     processingId: string | number | null;
     onApprove: (req: Request) => void;
     onReject: (req: Request) => void;
+    onView: (req: Request) => void;
 }
 
 export default function RequestTable({
@@ -15,6 +16,7 @@ export default function RequestTable({
     processingId,
     onApprove,
     onReject,
+    onView,
 }: RequestTableProps) {
     return (
         <div className="overflow-x-auto">
@@ -55,6 +57,7 @@ export default function RequestTable({
                                 isProcessing={processingId === req.requestId}
                                 onApprove={onApprove}
                                 onReject={onReject}
+                                onView={onView}
                             />
                         ))
                     )}

@@ -1,12 +1,14 @@
 import type { Request } from "../../types/request";
 import StatusBadge from "../common/StatusBadge";
 import { formatDate, requestTypeLabel } from "../../utils/format";
+import { Eye } from "lucide-react";
 
 interface RequestRowProps {
     request: Request;
     isProcessing: boolean;
     onApprove: (req: Request) => void;
     onReject: (req: Request) => void;
+    onView: (req: Request) => void;
 }
 
 export default function RequestRow({
@@ -14,6 +16,7 @@ export default function RequestRow({
     isProcessing,
     onApprove,
     onReject,
+    onView,
 }: RequestRowProps) {
     const isPending = request.statusCode === "PENDING";
 
@@ -53,28 +56,37 @@ export default function RequestRow({
                 </span>
             </td>
             <td className="px-4 py-4 text-right">
-                {isPending ? (
-                    <div className="flex justify-end gap-2">
-                        <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => onApprove(request)}
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? "..." : "Approve"}
-                        </button>
-                        <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => onReject(request)}
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? "..." : "Reject"}
-                        </button>
-                    </div>
-                ) : (
-                    <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
-                        Archived
-                    </span>
-                )}
+                <div className="flex items-center justify-end gap-2">
+                    <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => onView(request)}
+                        title="View Details"
+                    >
+                        <Eye className="h-3.5 w-3.5" />
+                    </button>
+                    {isPending ? (
+                        <>
+                            <button
+                                className="btn btn-sm btn-success"
+                                onClick={() => onApprove(request)}
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? "..." : "Approve"}
+                            </button>
+                            <button
+                                className="btn btn-sm btn-danger"
+                                onClick={() => onReject(request)}
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? "..." : "Reject"}
+                            </button>
+                        </>
+                    ) : (
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
+                            Archived
+                        </span>
+                    )}
+                </div>
             </td>
         </tr>
     );

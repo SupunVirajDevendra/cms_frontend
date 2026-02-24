@@ -15,8 +15,20 @@ export default function CardsPage() {
     const [cards, setCards] = useState<Card[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [searchInput, setSearchInput] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
+
+    const handleSearch = () => {
+        setSearch(searchInput);
+        setCurrentPage(1);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
 
     useEffect(() => {
         const fetchCards = async () => {
@@ -44,7 +56,7 @@ export default function CardsPage() {
             }
         };
 
-        const timer = setTimeout(fetchCards, search ? 500 : 0);
+        const timer = setTimeout(fetchCards, search ? 300 : 0);
         return () => clearTimeout(timer);
     }, [currentPage, search]);
 
@@ -77,14 +89,19 @@ export default function CardsPage() {
                     <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Master Search: Identify card by ID or Number..."
-                        className="form-input h-12 pl-12 bg-white border-slate-200 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-semibold text-slate-900"
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setCurrentPage(1);
-                        }}
+                        placeholder="Identify card number"
+                        className="form-input h-12 pl-12 pr-24 bg-white border-slate-200 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-semibold text-slate-900"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
+                    <button
+                        type="button"
+                        onClick={handleSearch}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-4 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Search
+                    </button>
                 </div>
             </div>
 
